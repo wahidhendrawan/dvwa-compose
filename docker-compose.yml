@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: dvwa-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    volumes:
+      - db_data:/var/lib/mysql
+
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: dvwa
+    restart: unless-stopped
+    environment:
+      DB_SERVER: db
+      DB_USER: dvwa
+      DB_PASSWORD: p@ssw0rd
+      DB_DATABASE: dvwa
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    container_name: dvwa-nginx
+    restart: unless-stopped
+    depends_on:
+      - dvwa
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+
+volumes:
+  db_data:
