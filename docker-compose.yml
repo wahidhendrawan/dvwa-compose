@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:5.7
+    image: mariadb:10
     container_name: dvwa-db
     restart: unless-stopped
     environment:
