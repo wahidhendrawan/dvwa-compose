@@ -1,51 +1,47 @@
-# DVWA Compose
+# DVWA Docker Compose
 
-DVWA (Damn Vulnerable Web Application) stack with HTTPS and MySQL, packaged for Docker Compose.
+Docker Compose setup for [Damn Vulnerable Web Application (DVWA)](https://github.com/digininja/DVWA) with Nginx reverse proxy and TLS.
 
-## 🧱 Services
-- **MySQL 5.7** – Database backend
-- **DVWA** – Web application (vulnerables/web-dvwa)
-- **Nginx** – HTTPS reverse proxy (port 443)
+Works on **x86_64** and **ARM** (Apple Silicon, Raspberry Pi) — uses MariaDB which supports both architectures natively.
 
-## ⚙️ Setup Instructions
+## Quick Start
 
-### 1. Generate SSL Certificates
 ```bash
-mkdir -p nginx/ssl nginx/conf.d
+git clone https://github.com/wahidhendrawan/dvwa-compose.git
+cd dvwa-compose
+docker compose up -d
+```
+
+Access DVWA at `https://localhost` (default credentials: `admin` / `password`).
+
+## Architecture
+
+```
+Client → Nginx (TLS :443) → DVWA (PHP) → MariaDB
+```
+
+## Configuration
+
+- **Nginx config**: `nginx/conf.d/default.conf`
+- **TLS certificates**: `nginx/ssl/` (generate or place your own)
+- **Database credentials**: edit `docker-compose.yml` environment variables
+
+## Generate Self-Signed TLS Certificate
+
+```bash
+mkdir -p nginx/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout nginx/ssl/dvwa.key -out nginx/ssl/dvwa.crt \
   -subj "/CN=localhost"
 ```
 
-### 2. Start the stack
-```bash
-docker compose up -d
-```
+## Stop
 
-### 3. Access
-- URL: https://localhost  
-- Login: `admin` / `password`
-- Setup page: https://localhost/setup.php
-
-### 4. Stop and remove
 ```bash
 docker compose down
+docker compose down -v  # also remove database volume
 ```
 
-## 🧰 Directory Structure
-```
-dvwa-compose/
-│
-├── docker-compose.yml
-├── nginx/
-│   ├── conf.d/
-│   │   └── default.conf
-│   └── ssl/
-│       ├── dvwa.crt
-│       └── dvwa.key
-└── README.md
-```
+## License
 
-## 🧩 Notes
-- Self-signed certificate is used (browser may warn about it).
-- To use a real domain, replace SSL files with Let's Encrypt or other valid certs.
+This project is provided under the GPL-3.0-or-later license.
