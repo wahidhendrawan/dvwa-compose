@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: mariadb:12
@@ -20,6 +22,7 @@ services:
       DB_USER: dvwa
       DB_PASSWORD: p@ssw0rd
       DB_DATABASE: dvwa
+      DVWA_DIFFICULTY: ${DVWA_DIFFICULTY:-impossible}
     depends_on:
       - db
 
