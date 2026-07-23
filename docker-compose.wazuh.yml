@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  wazuh-agent:
+    image: wazuh/wazuh-agent:latest
+    container_name: dvwa-wazuh-agent
+    restart: unless-stopped
+    depends_on:
+      - dvwa
+    environment:
+      WAZUH_MANAGER: ${WAZUH_MANAGER:-wazuh.manager.local}
+      WAZUH_AGENT_NAME: dvwa-agent
+      WAZUH_GROUP: dvwa
+    volumes:
+      - wazuh_data:/var/ossec/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+      - DAC_OVERRIDE
+      - NET_ADMIN
+      - NET_RAW
+    pid: "host"
+    network_mode: "host"
+
+volumes:
+  wazuh_data:
