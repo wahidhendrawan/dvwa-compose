@@ -2,6 +2,9 @@
 
 # DVWA Docker Compose
 
+> [!WARNING]
+> **DVWA is intentionally vulnerable. NEVER expose this deployment to the internet or an untrusted LAN. Run it only on an isolated lab network; this configuration binds its web interface to `127.0.0.1` by default.**
+
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL-3.0-blue.svg)](https://github.com/wahidhendrawan/dvwa-compose/blob/main/LICENSE)
 [![Release](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/wahidhendrawan/dvwa-compose/releases)
 [![CI](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml/badge.svg)](https://github.com/wahidhendrawan/dvwa-compose/actions)
@@ -17,22 +20,20 @@ Works on **x86_64** and **ARM** (Apple Silicon, Raspberry Pi) — uses MariaDB w
 ```bash
 git clone https://github.com/wahidhendrawan/dvwa-compose.git
 cd dvwa-compose
+cp .env.example .env
+# Edit .env and replace both password placeholders with unique values.
 docker compose up -d
 ```
 
-Access DVWA at `https://localhost` (default credentials: `admin` / `password`).
+Access DVWA at `https://localhost` (default credentials: `admin` / `password`). The browser TLS warning is expected for the self-signed certificate.
 
 ### Difficulty Level
 
-Set the DVWA security difficulty via environment variable:
+Set the DVWA security difficulty in `.env`:
 
 ```bash
 # Options: impossible, high, medium, low
-DVWA_DIFFICULTY=low docker compose up -d
-
-# Or set in .env file
-echo "DVWA_DIFFICULTY=medium" > .env
-docker compose up -d
+DVWA_DIFFICULTY=medium
 ```
 
 After `docker compose up`, adjust the difficulty in the DVWA UI (`DVWA Security` → select level → Submit). The `DVWA_DIFFICULTY` variable is passed to the container for startup reference.
@@ -40,7 +41,7 @@ After `docker compose up`, adjust the difficulty in the DVWA UI (`DVWA Security`
 ## Architecture
 
 ```
-Client → Nginx (TLS :443) → DVWA (PHP) → MariaDB
+Client (localhost only) → Nginx (TLS :443) → DVWA (PHP) → MariaDB
 ```
 
 ## Supported Architectures
@@ -52,18 +53,20 @@ Client → Nginx (TLS :443) → DVWA (PHP) → MariaDB
 
 ## Configuration
 
+- **Deployment environment**: Copy `.env.example` to `.env`; `.env` is gitignored and must contain unique database passwords.
 - **Nginx config**: `nginx/conf.d/default.conf`
 - **TLS certificates**: `nginx/ssl/` (generate or place your own)
-- **Database credentials**: edit `docker-compose.yml` environment variables
-- **Difficulty**: set `DVWA_DIFFICULTY` env var (`low`, `medium`, `high`, `impossible` — default)
+- **Database credentials**: Set `MYSQL_ROOT_PASSWORD`, `DVWA_DB_USER`, and `DVWA_DB_PASSWORD` in `.env`.
+- **Difficulty**: Set `DVWA_DIFFICULTY` in `.env` (`low`, `medium`, `high`, `impossible` — default).
+- **Image pinning**: Images use version tags; pin the corresponding digests before production use.
 
 ## Wazuh SIEM Integration
 
 The optional `docker-compose.wazuh.yml` adds a Wazuh agent for monitoring:
 
 ```bash
-# Set your Wazuh manager address
-export WAZUH_MANAGER=192.168.1.100
+# Set your Wazuh manager address in .env.
+WAZUH_MANAGER=192.168.1.100
 
 # Launch with Wazuh agent
 docker compose -f docker-compose.yml -f docker-compose.wazuh.yml up -d
