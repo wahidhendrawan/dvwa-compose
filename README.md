@@ -86,6 +86,40 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -subj "/CN=localhost"
 ```
 
+## Lifecycle: Setup, Reset, Teardown
+
+### 1. Initial Setup
+
+Bring the lab up with detached services:
+
+```bash
+# Verify the configuration first (optional)
+docker compose --env-file .env.example config
+
+# Create and start all services in the background
+docker compose up --detach
+```
+
+### 2. Teardown (Stop and Remove Containers)
+
+Stop services and remove containers, networks, and volumes:
+
+```bash
+# Stop services and remove containers/networks
+docker compose down
+
+# Also remove the MariaDB data volume (resets all DVWA data)
+docker compose down --volumes
+```
+
+### 3. Resetting the Database
+
+If DVWA's database setup fails or you need to reset it without a full teardown, use the web interface:
+
+1.  Access `https://localhost/setup.php`
+2.  Click the `Create / Reset Database` button.
+3.  You will be redirected to the login page; the database is now reset.
+
 ## Troubleshooting
 
 | Issue | Solution |
