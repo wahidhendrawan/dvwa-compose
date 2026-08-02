@@ -1,5 +1,8 @@
 # Security Policy
 
+> [!WARNING]
+> **DVWA is intentionally vulnerable and is for authorized training only. NEVER make this deployment internet-facing or expose it to an untrusted LAN. Run it only on localhost or an isolated lab network.**
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it responsibly:

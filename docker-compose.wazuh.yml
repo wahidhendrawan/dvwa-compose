@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   wazuh-agent:
-    image: wazuh/wazuh-agent:latest
+    image: wazuh/wazuh-agent:4.8.2
     container_name: dvwa-wazuh-agent
     restart: unless-stopped
     depends_on:
@@ -21,7 +21,12 @@ services:
       - NET_ADMIN
       - NET_RAW
     pid: "host"
-    network_mode: "host"
+    networks:
+      - dvwa_lab
 
 volumes:
   wazuh_data:
+
+networks:
+  dvwa_lab:
+    driver: bridge
