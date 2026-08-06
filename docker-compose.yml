@@ -1,9 +1,11 @@
-version: "3.9"
+# DVWA Compose — hardened lab defaults
+# WARNING: DVWA is intentionally vulnerable. NEVER expose to the internet.
+# See SECURITY.md for full guidance.
 
-# Pin image digests as well as version tags for production deployments.
 services:
   db:
-    image: mariadb:11.4.5
+    # MariaDB 11.4.5 multi-arch manifest (amd64/arm64)
+    image: mariadb:11.4.5@sha256:49117dcc565cf51aa57ac5fca59ab31213402ff0eae6ffc13c46a37b938f7e4b
     container_name: dvwa-db
     restart: unless-stopped
     environment:
@@ -15,8 +17,15 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - dvwa_lab
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   dvwa:
+    # DVWA 1.10.0 (amd64 only; no multi-arch manifest available)
     image: vulnerables/web-dvwa:1.10.0
     container_name: dvwa
     restart: unless-stopped
@@ -27,23 +36,40 @@ services:
       DB_DATABASE: ${DVWA_DB_NAME:?Set DVWA_DB_NAME in .env}
       DVWA_DIFFICULTY: ${DVWA_DIFFICULTY:-impossible}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - dvwa_lab
+    healthcheck:
+      # PHP is included by DVWA; verify that Apache is accepting connections.
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 80) ? 0 : 1);"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
-    image: nginx:1.26.3
+    # Nginx 1.26.3 multi-arch manifest (amd64/arm64)
+    image: nginx:1.26.3@sha256:41b194461e4bae16f9b25d68b0976ed4735b89ca625c89aad88e1c1c3b7e8860
     container_name: dvwa-nginx
     restart: unless-stopped
     depends_on:
-      - dvwa
+      dvwa:
+        condition: service_healthy
     ports:
-      - "127.0.0.1:443:443"
+      - "${DVWA_BIND_ADDR:-127.0.0.1}:${DVWA_PORT:-443}:443"
     volumes:
-      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - dvwa_lab
+    healthcheck:
+      # Validate the loaded Nginx configuration without assuming curl/wget exists.
+      test: ["CMD", "nginx", "-t"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   db_data:
