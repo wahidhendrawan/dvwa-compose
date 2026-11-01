@@ -1,16 +1,17 @@
-version: "3.9"
-
+# Host-level access: see "Wazuh SIEM Integration" in README.md before enabling.
 services:
   wazuh-agent:
-    image: wazuh/wazuh-agent:4.8.2
+    # Docker Hub publishes wazuh-agent images from 4.13 on; keep the agent no newer than your manager.
+    image: wazuh/wazuh-agent:4.14.9@sha256:db274c1e2c56106f108fa1469f7ee99995ad3cac41003e8ca7a975cda2af20d8
     container_name: dvwa-wazuh-agent
     restart: unless-stopped
     depends_on:
       - dvwa
     environment:
-      WAZUH_MANAGER: ${WAZUH_MANAGER:-wazuh.manager.local}
+      # Variable names read by the wazuh/wazuh-agent image's init script.
+      WAZUH_MANAGER_SERVER: ${WAZUH_MANAGER:-wazuh.manager.local}
       WAZUH_AGENT_NAME: dvwa-agent
-      WAZUH_GROUP: dvwa
+      WAZUH_AGENT_GROUP: dvwa
     volumes:
       - wazuh_data:/var/ossec/data
       - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -25,8 +25,10 @@ services:
       retries: 3
 
   dvwa:
-    # DVWA 1.10.0 (amd64 only; no multi-arch manifest available)
-    image: vulnerables/web-dvwa:1.10.0
+    # DVWA 1.10 (amd64 only; runs under emulation on ARM). Docker Hub has no
+    # 1.10.0 tag: `latest` (unchanged since 2018) is the 1.10 build, pinned here.
+    image: vulnerables/web-dvwa:latest@sha256:dae203fe11646a86937bf04db0079adef295f426da68a92b40e3b181f337daa7
+    platform: linux/amd64
     container_name: dvwa
     restart: unless-stopped
     environment:
@@ -34,7 +36,6 @@ services:
       DB_USER: ${DVWA_DB_USER:?Set DVWA_DB_USER in .env}
       DB_PASSWORD: ${DVWA_DB_PASSWORD:?Set DVWA_DB_PASSWORD in .env}
       DB_DATABASE: ${DVWA_DB_NAME:?Set DVWA_DB_NAME in .env}
-      DVWA_DIFFICULTY: ${DVWA_DIFFICULTY:-impossible}
     depends_on:
       db:
         condition: service_healthy
