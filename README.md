@@ -1,19 +1,17 @@
-[![CI](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml/badge.svg)](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml)
-
 # DVWA Docker Compose
+
+[![CI](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml/badge.svg)](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/wahidhendrawan/dvwa-compose?sort=semver)](https://github.com/wahidhendrawan/dvwa-compose/releases/latest)
+[![License](https://img.shields.io/github/license/wahidhendrawan/dvwa-compose)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/wahidhendrawan/dvwa-compose/badge)](https://scorecard.dev/viewer/?uri=github.com/wahidhendrawan/dvwa-compose)
+[![Docker](https://img.shields.io/badge/docker-compose%20ready-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
 > [!WARNING]
 > **DVWA is intentionally vulnerable. NEVER expose this deployment to the internet or an untrusted LAN. Run it only on an isolated lab network; this configuration binds its web interface to `127.0.0.1` by default.**
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL-3.0-blue.svg)](https://github.com/wahidhendrawan/dvwa-compose/blob/main/LICENSE)
-[![Release](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/wahidhendrawan/dvwa-compose/releases)
-[![CI](https://github.com/wahidhendrawan/dvwa-compose/actions/workflows/ci.yml/badge.svg)](https://github.com/wahidhendrawan/dvwa-compose/actions)
-[![Docker](https://img.shields.io/badge/docker-compose%20ready-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
-[![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-green)]()
-
 Docker Compose setup for [Damn Vulnerable Web Application (DVWA)](https://github.com/digininja/DVWA) with Nginx reverse proxy and TLS.
 
-Works on **x86_64** and **ARM** (Apple Silicon, Raspberry Pi) — uses MariaDB which supports both architectures natively.
+Works on **x86_64** and **ARM** (Apple Silicon, Raspberry Pi). MariaDB and Nginx run natively on both; the DVWA image is published for amd64 only, so on ARM it runs under emulation (Docker Desktop does this out of the box; on Linux install QEMU binfmt, e.g. `docker run --privileged --rm tonistiigi/binfmt --install amd64`).
 
 ## Quick Start
 
@@ -29,14 +27,7 @@ Access DVWA at `https://localhost` (default credentials: `admin` / `password`). 
 
 ### Difficulty Level
 
-Set the DVWA security difficulty in `.env`:
-
-```bash
-# Options: impossible, high, medium, low
-DVWA_DIFFICULTY=medium
-```
-
-After `docker compose up`, adjust the difficulty in the DVWA UI (`DVWA Security` → select level → Submit). The `DVWA_DIFFICULTY` variable is passed to the container for startup reference.
+DVWA keeps the difficulty in a per-browser `security` cookie that starts at `impossible`, so it cannot be preset from `.env`. After logging in, choose the level in the DVWA UI (`DVWA Security` → select `low`, `medium`, `high` or `impossible` → Submit).
 
 ## Architecture
 
@@ -57,8 +48,8 @@ Client (localhost only) → Nginx (TLS :443) → DVWA (PHP) → MariaDB
 - **Nginx config**: `nginx/conf.d/default.conf`
 - **TLS certificates**: `nginx/ssl/` (generate or place your own)
 - **Database credentials**: Set `MYSQL_ROOT_PASSWORD`, `DVWA_DB_USER`, and `DVWA_DB_PASSWORD` in `.env`.
-- **Difficulty**: Set `DVWA_DIFFICULTY` in `.env` (`low`, `medium`, `high`, `impossible` — default).
-- **Image pinning**: Images use version tags; pin the corresponding digests before production use.
+- **Difficulty**: Set per browser in the DVWA UI (see [Difficulty Level](#difficulty-level)); `impossible` is the default.
+- **Image pinning**: Every image is pinned as `tag@sha256:digest`; update tag and digest together when upgrading.
 
 ## Wazuh SIEM Integration
 
@@ -76,6 +67,9 @@ The agent provides:
 - File integrity monitoring of DVWA and MariaDB logs
 - Container activity auditing
 - Alert correlation with SIEM
+
+> [!CAUTION]
+> The agent runs with host-level access: it mounts `/var/run/docker.sock` (the `:ro` flag does not restrict Docker API calls, so this is root-equivalent control of the host's Docker daemon), shares the host PID namespace (`pid: host`), and adds the `SYS_ADMIN`, `SYS_PTRACE`, `DAC_OVERRIDE`, `NET_ADMIN` and `NET_RAW` capabilities. Enable it only on a dedicated lab host, and keep the agent version no newer than your Wazuh manager.
 
 ## Generate Self-Signed TLS Certificate
 
@@ -127,7 +121,7 @@ If DVWA's database setup fails or you need to reset it without a full teardown, 
 | Connection refused | Wait ~30s for MariaDB to initialize, then retry |
 | TLS warning | Accept self-signed certificate in browser |
 | Database error | `docker compose down -v && docker compose up -d` (recreate volumes) |
-| ARM compatibility | All images are multi-arch — verify Docker `platform` defaults |
+| ARM compatibility | `vulnerables/web-dvwa` is amd64-only and runs under emulation; enable QEMU binfmt on Linux hosts (Docker Desktop has it built in) |
 
 ## Stop
 
@@ -135,6 +129,10 @@ If DVWA's database setup fails or you need to reset it without a full teardown, 
 docker compose down
 docker compose down -v  # also remove database volume
 ```
+
+## Security
+
+Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), not in a public issue.
 
 ## License
 
