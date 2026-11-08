@@ -5,7 +5,7 @@
 services:
   db:
     # MariaDB 11.4.5 multi-arch manifest (amd64/arm64)
-    image: mariadb:11.4.5@sha256:49117dcc565cf51aa57ac5fca59ab31213402ff0eae6ffc13c46a37b938f7e4b
+    image: mariadb:13.0.2@sha256:f4054da26e3a9dd6c8b5cc97363e544408b15c0fb369d7359c25dc04826eb6e1
     container_name: dvwa-db
     restart: unless-stopped
     environment:
