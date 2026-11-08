@@ -51,7 +51,7 @@ services:
 
   nginx:
     # Nginx 1.26.3 multi-arch manifest (amd64/arm64)
-    image: nginx:1.26.3@sha256:41b194461e4bae16f9b25d68b0976ed4735b89ca625c89aad88e1c1c3b7e8860
+    image: nginx:1.31.7@sha256:8632b3314d74c61f0e27f59055bab13f7793b988c94c090154d867bc29e0f39b
     container_name: dvwa-nginx
     restart: unless-stopped
     depends_on:
