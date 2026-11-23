@@ -2,7 +2,7 @@
 services:
   wazuh-agent:
     # Docker Hub publishes wazuh-agent images from 4.13 on; keep the agent no newer than your manager.
-    image: wazuh/wazuh-agent:4.14.10@sha256:c30f8cdf7e535674c9f9881aa2824e5e94f7e3f66dd2b90eaf36c4ad155c6526
+    image: wazuh/wazuh-agent:4.14.10@sha256:ac8a7d3fde4bdc713cc5ff82ead1cfbf9f91e91d7e5ce5e1a4b8256fc292a466
     container_name: dvwa-wazuh-agent
     restart: unless-stopped
     depends_on:
